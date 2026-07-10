@@ -1,602 +1,831 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineVault Ultra - Events & Battlepasses</title>
+    <title>MM2 Tracker - Events & Passes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Roboto:wght@400;700&display=swap');
-
         :root {
-            --bg-main: #0b0c10;
-            --bg-sidebar: #1f2833;
-            --bg-card: #151a22;
-            --accent-red: #c5c6c7;
-            --text-main: #ffffff;
-            --text-muted: #8b929a;
-            --halloween-color: #ff7518;
-            --christmas-color: #00cc66;
-            --summer-color: #ffd700;
+            --bg-dark: #050508;
+            --bg-panel: rgba(20, 21, 24, 0.7);
+            --bg-hover: rgba(31, 32, 37, 0.9);
+            --accent-red: #ff3b3b;
+            --accent-glow: rgba(255, 59, 59, 0.5);
+            --text-main: #f0f0f0;
+            --text-muted: #6c6e79;
+            --border-color: rgba(42, 43, 51, 0.6);
+            --owned-green: #00ff7f;
+            --owned-glow: rgba(0, 255, 127, 0.3);
+            --img-bg: rgba(10, 10, 12, 0.8);
         }
 
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--bg-main);
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            background: radial-gradient(circle at top left, #120a0a 0%, var(--bg-dark) 100%);
             color: var(--text-main);
             margin: 0;
+            padding: 0;
             display: flex;
+            flex-direction: column;
             height: 100vh;
             overflow: hidden;
         }
 
-        /* TABS (Caixas vs Battlepasses) */
-        .type-tabs {
+        /* Top Navigation Bar */
+        header {
+            background: rgba(10, 11, 14, 0.85);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px 40px;
             display: flex;
-            background-color: #11151c;
-            border-bottom: 2px solid #333;
-            padding: 10px 20px 0 20px;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
+            z-index: 10;
         }
 
-        .tab-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 1.2em;
-            font-family: 'Oswald', sans-serif;
-            text-transform: uppercase;
-            padding: 10px 20px;
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: 0.3s ease;
-            border-bottom: 3px solid transparent;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .tab-btn:hover {
-            color: var(--text-main);
+        .back-btn:hover {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+            box-shadow: 0 0 15px var(--accent-glow);
+            transform: translateX(-3px);
         }
 
-        .tab-btn.active {
-            color: var(--text-main);
-            border-bottom: 3px solid #00bfff;
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
-        /* Sidebar Container */
-        .sidebar-container {
+        header h1 span {
+            color: var(--accent-red);
+            text-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .header-stats {
+            font-size: 14px;
+            color: var(--text-muted);
+            background: rgba(0,0,0,0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .app-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Glass Sidebar */
+        .sidebar {
             width: 320px;
-            background-color: var(--bg-sidebar);
+            background: rgba(15, 16, 20, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
-            border-right: 1px solid #2a3441;
+            z-index: 5;
+            box-shadow: 5px 0 25px rgba(0,0,0,0.5);
         }
 
-        .sidebar-content {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 15px;
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-main); }
-        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #666; }
-
-        /* Categorias na Sidebar */
-        .category-group {
-            margin-bottom: 20px;
+        .category-container {
+            margin-bottom: 5px;
         }
 
         .category-header {
-            font-family: 'Oswald', sans-serif;
-            font-size: 1.3em;
+            background: linear-gradient(90deg, rgba(20,21,26,1) 0%, rgba(20,21,26,0) 100%);
+            color: var(--text-muted);
+            padding: 15px 25px;
+            font-size: 12px;
             text-transform: uppercase;
-            margin-bottom: 10px;
-            padding-bottom: 5px;
-            border-bottom: 2px solid;
+            font-weight: 900;
+            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(255,255,255,0.02);
+        }
+
+        .box-btn {
+            background: transparent;
+            color: var(--text-main);
+            border: none;
+            width: 100%;
+            text-align: left;
+            padding: 12px 25px 12px 40px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+
+        .box-btn::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: var(--accent-red);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .box-btn:hover {
+            background: linear-gradient(90deg, var(--bg-hover) 0%, transparent 100%);
+            color: #fff;
+            padding-left: 45px;
+        }
+
+        .box-btn.active {
+            background: linear-gradient(90deg, rgba(255, 59, 59, 0.1) 0%, transparent 100%);
+            color: var(--accent-red);
+            font-weight: 700;
+            padding-left: 45px;
+        }
+
+        .box-btn.active::before {
+            transform: scaleY(1);
+        }
+
+        /* Main Tracking Area */
+        .main-content {
+            flex: 1;
+            padding: 50px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .box-title {
+            font-size: 32px;
+            margin-top: 0;
+            margin-bottom: 40px;
+            font-weight: 900;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+            position: relative;
+        }
+
+        .box-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 60%;
+            height: 3px;
+            background: var(--accent-red);
+            box-shadow: 0 0 10px var(--accent-glow);
+            border-radius: 2px;
+        }
+
+        .gun-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        /* 3D Glass Weapon Cards */
+        .gun-card {
+            background: var(--bg-panel);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 15px;
             display: flex;
             align-items: center;
-            gap: 10px;
-        }
-
-        .header-halloween { color: var(--halloween-color); border-color: var(--halloween-color); }
-        .header-christmas { color: var(--christmas-color); border-color: var(--christmas-color); }
-        .header-summer { color: var(--summer-color); border-color: var(--summer-color); }
-
-        .item-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .list-item {
-            padding: 10px 12px;
-            margin-bottom: 5px;
-            background-color: rgba(0, 0, 0, 0.2);
-            border-radius: 4px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
             cursor: pointer;
-            font-weight: 700;
-            color: #ccc;
-            transition: all 0.2s;
-            border-left: 3px solid transparent;
+            gap: 18px;
+            position: relative;
+            overflow: hidden;
+            
+            opacity: 0;
+            transform: translateY(20px);
+            animation: cardEnter 0.5s forwards ease-out;
         }
 
-        .list-item:hover {
-            background-color: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            transform: translateX(5px);
+        @keyframes cardEnter {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .list-item.active {
-            background-color: rgba(0, 191, 255, 0.1);
-            color: #00bfff;
-            border-left: 3px solid #00bfff;
+        .gun-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: rgba(255,255,255,0.2);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+            background: rgba(30, 31, 38, 0.8);
         }
 
-        /* Main Content */
-        .main-content {
-            flex-grow: 1;
+        .gun-card.owned {
+            border-color: var(--owned-green);
+            background: linear-gradient(135deg, rgba(20,21,24,0.9) 0%, rgba(0, 40, 20, 0.6) 100%);
+            box-shadow: 0 10px 25px rgba(0, 255, 127, 0.15), inset 0 0 20px rgba(0, 255, 127, 0.05);
+        }
+
+        .gun-card.owned:hover {
+            box-shadow: 0 15px 35px rgba(0, 255, 127, 0.25), inset 0 0 20px rgba(0, 255, 127, 0.1);
+        }
+
+        .gun-image-container {
+            width: 75px;
+            height: 75px;
+            background-color: var(--img-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .gun-image-container img {
+            width: 85%;
+            height: 85%;
+            object-fit: contain;
+            transition: transform 0.4s ease;
+        }
+
+        .gun-card:hover .gun-image-container img {
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        .gun-card.owned .gun-image-container {
+            border-color: rgba(0, 255, 127, 0.4);
+            background-color: rgba(0, 20, 10, 0.8);
+        }
+
+        .gun-info {
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-        }
-
-        .content-header {
-            padding: 20px 40px;
-            background: linear-gradient(to bottom, #1a202c, var(--bg-main));
-            border-bottom: 1px solid #2a3441;
-        }
-
-        .content-title {
-            font-family: 'Oswald', sans-serif;
-            font-size: 2.5em;
-            margin: 0;
-            color: #fff;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-
-        .items-grid-container {
             flex-grow: 1;
-            padding: 30px 40px;
-            overflow-y: auto;
+            pointer-events: none;
         }
 
-        .items-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 20px;
+        .gun-name {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
         }
 
-        /* Cartões de Item */
-        .item-card {
-            background-color: var(--bg-card);
-            border: 1px solid #2a3441;
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
+        .gun-status {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .gun-card.owned .gun-name {
+            color: #fff;
+        }
+
+        .gun-card.owned .gun-status {
+            color: var(--owned-green);
+            text-shadow: 0 0 10px var(--owned-glow);
+        }
+
+        /* Checkbox wrapper adjustments */
+        .checkbox-wrapper {
             position: relative;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            width: 32px;
+            height: 32px;
+            pointer-events: none;
+            flex-shrink: 0;
+            margin-right: 5px;
         }
 
-        .item-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.5);
-            border-color: #444;
+        .gun-card input[type="checkbox"] {
+            display: none;
         }
 
-        .item-card img {
-            width: 100%;
-            height: 120px;
-            object-fit: contain;
-            margin-bottom: 10px;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+        .custom-checkbox {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 32px;
+            width: 32px;
+            background-color: rgba(0,0,0,0.5);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
 
-        .item-name {
-            font-weight: bold;
-            font-size: 1.1em;
-            color: #e0e0e0;
+        .gun-card:hover .custom-checkbox {
+            border-color: rgba(255,255,255,0.4);
+        }
+
+        .gun-card.owned .custom-checkbox {
+            background-color: var(--owned-green);
+            border-color: var(--owned-green);
+            box-shadow: 0 0 15px var(--owned-glow);
+            transform: scale(1.05);
+        }
+
+        .custom-checkbox::after {
+            content: "";
+            position: absolute;
+            display: none;
+            left: 11px;
+            top: 5px;
+            width: 6px;
+            height: 14px;
+            border: solid var(--bg-dark);
+            border-width: 0 3px 3px 0;
+            transform: rotate(45deg);
+            animation: checkmark 0.3s ease-in-out forwards;
+        }
+
+        @keyframes checkmark {
+            0% { height: 0; width: 0; opacity: 0; }
+            100% { height: 14px; width: 6px; opacity: 1; }
+        }
+
+        .gun-card.owned .custom-checkbox::after {
+            display: block;
         }
 
         .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 60vh;
             text-align: center;
             color: var(--text-muted);
-            font-size: 1.2em;
-            margin-top: 50px;
-            grid-column: 1 / -1;
+            animation: cardEnter 0.6s forwards ease-out;
+        }
+
+        .empty-state h2 {
+            font-size: 28px;
+            color: #fff;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.2);
         }
     </style>
 </head>
 <body>
 
-    <div class="sidebar-container">
-        <div class="type-tabs">
-            <button class="tab-btn active" onclick="switchType('boxes')">Caixas</button>
-            <button class="tab-btn" onclick="switchType('battlepasses')">Battlepasses</button>
+    <header>
+        <div class="header-left">
+            <a href="index.html" class="back-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                Main Menu
+            </a>
+            <h1>Event <span>Boxes</span></h1>
         </div>
-        
-        <div class="sidebar-content" id="sidebar-content">
+        <div class="header-stats" id="global-stats">Loading stats...</div>
+    </header>
+
+    <div class="app-container">
+        <div class="sidebar" id="sidebar"></div>
+
+        <div class="main-content">
+            <div id="content-area">
+                <div class="empty-state">
+                    <h2>Select an Event</h2>
+                    <p>Choose a Box or Battlepass from the sidebar to start tracking your event inventory.</p>
+                </div>
             </div>
+        </div>
     </div>
 
-    <div class="main-content">
-        <div class="content-header">
-            <h1 class="content-title" id="content-title">Seleciona um Evento</h1>
-        </div>
-        <div class="items-grid-container">
-            <div class="items-grid" id="items-grid">
-                <div class="empty-state">Escolhe uma caixa ou battlepass no menu lateral.</div>
-            </div>
-        </div>
-    </div>
+    <script>
+        const mm2Database = {
+            "Halloween Boxes": {
+                "2016 Halloween Box": [
+                    { name: "Pumpkin Slasher", img: "placeholder.png" },
+                    { name: "Ghost Blade", img: "placeholder.png" },
+                    { name: "Witch's Brew", img: "placeholder.png" },
+                    { name: "Vampire Bite", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2017 Halloween Box": [
+                    { name: "Zombie Brain", img: "placeholder.png" },
+                    { name: "Spider Web", img: "placeholder.png" },
+                    { name: "Grim Reaper", img: "placeholder.png" },
+                    { name: "Bat Swarm", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2018 Halloween Box": [
+                    { name: "Toxic Slime", img: "placeholder.png" },
+                    { name: "Bone Crusher", img: "placeholder.png" },
+                    { name: "Nightmare", img: "placeholder.png" },
+                    { name: "Gargoyle", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2019 Halloween Box": [
+                    { name: "Cursed Eye", img: "placeholder.png" },
+                    { name: "Shadow Hunter", img: "placeholder.png" },
+                    { name: "Demon Horn", img: "placeholder.png" },
+                    { name: "Eerie Glow", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2020 Halloween Box": [
+                    { name: "Mummy Wrap", img: "placeholder.png" },
+                    { name: "Tombstone", img: "placeholder.png" },
+                    { name: "Poltergeist", img: "placeholder.png" },
+                    { name: "Soul Catcher", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2021 Halloween Box": [
+                    { name: "Harvester Blade", img: "placeholder.png" },
+                    { name: "Corn Maze", img: "placeholder.png" },
+                    { name: "Scarecrow", img: "placeholder.png" },
+                    { name: "Crow Wing", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2022 Halloween Box": [
+                    { name: "Black Cat", img: "placeholder.png" },
+                    { name: "Midnight Howl", img: "placeholder.png" },
+                    { name: "Candlelight", img: "placeholder.png" },
+                    { name: "Stone Gargoyle", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2023 Halloween Box": [
+                    { name: "Voodoo Doll", img: "placeholder.png" },
+                    { name: "Swamp Monster", img: "placeholder.png" },
+                    { name: "Chainsaw", img: "placeholder.png" },
+                    { name: "Haunted Mirror", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2024 Halloween Box": [
+                    { name: "Eclipse", img: "placeholder.png" },
+                    { name: "Blood Moon", img: "placeholder.png" },
+                    { name: "Witch Broom", img: "placeholder.png" },
+                    { name: "Cauldron", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2025 Halloween Box": [
+                    { name: "Nether Flame", img: "placeholder.png" },
+                    { name: "Abyss Walker", img: "placeholder.png" },
+                    { name: "Specter Veil", img: "placeholder.png" },
+                    { name: "Wraith Edge", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ]
+            },
+            "Christmas Boxes": {
+                "2015 Christmas Knife Box": [
+                    { name: "Candy Cane", img: "placeholder.png" },
+                    { name: "Elf Dagger", img: "placeholder.png" },
+                    { name: "Snowflake", img: "placeholder.png" },
+                    { name: "Holly", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2015 Christmas Gun Box": [
+                    { name: "Snowball", img: "placeholder.png" },
+                    { name: "Gift Wrap", img: "placeholder.png" },
+                    { name: "Reindeer", img: "placeholder.png" },
+                    { name: "Gingerbread", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2017 Christmas Box": [
+                    { name: "Frostbite", img: "placeholder.png" },
+                    { name: "Ice Breaker", img: "placeholder.png" },
+                    { name: "Santa Sleigh", img: "placeholder.png" },
+                    { name: "North Pole", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2018 Christmas Box": [
+                    { name: "Nutcracker", img: "placeholder.png" },
+                    { name: "Mistletoe", img: "placeholder.png" },
+                    { name: "Winter Magic", img: "placeholder.png" },
+                    { name: "Chimney", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2019 Christmas Box": [
+                    { name: "Glacier", img: "placeholder.png" },
+                    { name: "Polar Bear", img: "placeholder.png" },
+                    { name: "Cozy Fire", img: "placeholder.png" },
+                    { name: "Jingle Bell", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2020 Christmas Box": [
+                    { name: "Peppermint", img: "placeholder.png" },
+                    { name: "Ornament", img: "placeholder.png" },
+                    { name: "Frozen Lake", img: "placeholder.png" },
+                    { name: "Avalanche", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2021 Christmas Box": [
+                    { name: "Eggnog", img: "placeholder.png" },
+                    { name: "Festive Light", img: "placeholder.png" },
+                    { name: "Yule Log", img: "placeholder.png" },
+                    { name: "Pine Needles", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2022 Christmas Box": [
+                    { name: "Aurora", img: "placeholder.png" },
+                    { name: "Sled Runner", img: "placeholder.png" },
+                    { name: "Wool Sweater", img: "placeholder.png" },
+                    { name: "Chestnut", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2023 Christmas Box": [
+                    { name: "Krampus Horn", img: "placeholder.png" },
+                    { name: "Blizzard", img: "placeholder.png" },
+                    { name: "Ice Sculpture", img: "placeholder.png" },
+                    { name: "Carrot Nose", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2024 Christmas Box": [
+                    { name: "Crystal Snow", img: "placeholder.png" },
+                    { name: "Arctic Fox", img: "placeholder.png" },
+                    { name: "Midnight Mass", img: "placeholder.png" },
+                    { name: "Gift Bag", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ]
+            },
+            "Summer Boxes": {
+                "2024 Summer Box": [
+                    { name: "Water Gun", img: "placeholder.png" },
+                    { name: "Beach Towel", img: "placeholder.png" },
+                    { name: "Sandcastle", img: "placeholder.png" },
+                    { name: "Surfboard", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2025 Summer Box": [
+                    { name: "Sunburn", img: "placeholder.png" },
+                    { name: "Palm Tree", img: "placeholder.png" },
+                    { name: "Coconut", img: "placeholder.png" },
+                    { name: "Ocean Wave", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ]
+            },
+            "Battlepasses": {
+                "2020 Halloween Pass": [
+                    { name: "Spooky Ghost", img: "placeholder.png" },
+                    { name: "Witch Hat", img: "placeholder.png" },
+                    { name: "Candy Corn", img: "placeholder.png" },
+                    { name: "Skeleton King", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2021 Halloween Pass": [
+                    { name: "Bat Swarm", img: "placeholder.png" },
+                    { name: "Full Moon", img: "placeholder.png" },
+                    { name: "Werewolf", img: "placeholder.png" },
+                    { name: "Dracula", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2022 Halloween Pass": [
+                    { name: "Spider Web", img: "placeholder.png" },
+                    { name: "Venom", img: "placeholder.png" },
+                    { name: "Tarantula", img: "placeholder.png" },
+                    { name: "Black Widow", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2023 Halloween Pass": [
+                    { name: "Zombie Hand", img: "placeholder.png" },
+                    { name: "Infected", img: "placeholder.png" },
+                    { name: "Quarantine", img: "placeholder.png" },
+                    { name: "Biohazard", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2024 Halloween Pass": [
+                    { name: "Evil Eye", img: "placeholder.png" },
+                    { name: "Curse Mark", img: "placeholder.png" },
+                    { name: "Dark Ritual", img: "placeholder.png" },
+                    { name: "Summoner", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2025 Halloween Pass": [
+                    { name: "Hellfire", img: "placeholder.png" },
+                    { name: "Brimstone", img: "placeholder.png" },
+                    { name: "Demon Wings", img: "placeholder.png" },
+                    { name: "Lord of Terror", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2020 Christmas Pass": [
+                    { name: "Snowball", img: "placeholder.png" },
+                    { name: "Ice Skates", img: "placeholder.png" },
+                    { name: "Ski Poles", img: "placeholder.png" },
+                    { name: "Snowboard", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2021 Christmas Pass": [
+                    { name: "Coal", img: "placeholder.png" },
+                    { name: "Naughty List", img: "placeholder.png" },
+                    { name: "Krampus Bell", img: "placeholder.png" },
+                    { name: "Bad Elf", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2022 Christmas Pass": [
+                    { name: "Reindeer Bell", img: "placeholder.png" },
+                    { name: "Rudolph Nose", img: "placeholder.png" },
+                    { name: "Sleigh Bell", img: "placeholder.png" },
+                    { name: "Dasher", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2023 Christmas Pass": [
+                    { name: "Gift Box", img: "placeholder.png" },
+                    { name: "Wrapping Paper", img: "placeholder.png" },
+                    { name: "Ribbon", img: "placeholder.png" },
+                    { name: "Bow", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2024 Christmas Pass": [
+                    { name: "Ice Cube", img: "placeholder.png" },
+                    { name: "Icicle", img: "placeholder.png" },
+                    { name: "Frost Shield", img: "placeholder.png" },
+                    { name: "Absolute Zero", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2024 Summer Pass": [
+                    { name: "Sunscreen", img: "placeholder.png" },
+                    { name: "Sunglasses", img: "placeholder.png" },
+                    { name: "Flip Flops", img: "placeholder.png" },
+                    { name: "Umbrella", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2025 Summer Pass": [
+                    { name: "Seashell", img: "placeholder.png" },
+                    { name: "Starfish", img: "placeholder.png" },
+                    { name: "Coral Reef", img: "placeholder.png" },
+                    { name: "Shark Fin", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ]
+            }
+        };
 
-<script>
-// Base de Dados Estruturada Completa com Itens e Imagens Placeholder
-const database = {
-    boxes: {
-        Halloween: {
-            "2016 Halloween Box": [ 
-                { name: "Batwing Slasher", img: "placeholder.png" },
-                { name: "Ghost Dagger", img: "placeholder.png" },
-                { name: "Pumpkin Launcher", img: "placeholder.png" },
-                { name: "Witch Brew Gun", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2017 Halloween Box": [ 
-                { name: "Vampire Fang", img: "placeholder.png" },
-                { name: "Blood Splatter", img: "placeholder.png" },
-                { name: "Spider Web Knife", img: "placeholder.png" },
-                { name: "Zombie Brain", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2018 Halloween Box": [ 
-                { name: "Toxic Barrel", img: "placeholder.png" },
-                { name: "Bone Crusher", img: "placeholder.png" },
-                { name: "Nightmare Blade", img: "placeholder.png" },
-                { name: "Grim Reaper Scythe", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2019 Halloween Box": [ 
-                { name: "Cursed Eye", img: "placeholder.png" },
-                { name: "Shadow Hunter", img: "placeholder.png" },
-                { name: "Eerie Glow", img: "placeholder.png" },
-                { name: "Demon Horn", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2020 Halloween Box": [ 
-                { name: "Mummy Wrap", img: "placeholder.png" },
-                { name: "Tombstone Smasher", img: "placeholder.png" },
-                { name: "Poltergeist", img: "placeholder.png" },
-                { name: "Soul Catcher", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2021 Halloween Box": [ 
-                { name: "Harvester Blade", img: "placeholder.png" },
-                { name: "Corn Maze Gun", img: "placeholder.png" },
-                { name: "Scarecrow Fear", img: "placeholder.png" },
-                { name: "Crow Wing", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2022 Halloween Box": [ 
-                { name: "Gargoyle Stone", img: "placeholder.png" },
-                { name: "Candlelight Saber", img: "placeholder.png" },
-                { name: "Black Cat Claws", img: "placeholder.png" },
-                { name: "Midnight Howl", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2023 Halloween Box": [ 
-                { name: "Voodoo Doll", img: "placeholder.png" },
-                { name: "Swamp Monster", img: "placeholder.png" },
-                { name: "Chainsaw Terror", img: "placeholder.png" },
-                { name: "Haunted Mirror", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2024 Halloween Box": [ 
-                { name: "Eclipse Blade", img: "placeholder.png" },
-                { name: "Blood Moon Revolver", img: "placeholder.png" },
-                { name: "Witch's Broom", img: "placeholder.png" },
-                { name: "Cauldron Brew", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2025 Halloween Box": [ 
-                { name: "Nether Flame", img: "placeholder.png" },
-                { name: "Abyss Walker", img: "placeholder.png" },
-                { name: "Specter Veil", img: "placeholder.png" },
-                { name: "Wraith Edge", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ]
-        },
-        Christmas: {
-            "2015 Christmas Knife Box": [ 
-                { name: "Candy Cane Slasher", img: "placeholder.png" },
-                { name: "Elf Dagger", img: "placeholder.png" },
-                { name: "Snowflake Edge", img: "placeholder.png" },
-                { name: "Holly Branch", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2015 Christmas Gun Box": [ 
-                { name: "Snowball Launcher", img: "placeholder.png" },
-                { name: "Gift Wrap Blaster", img: "placeholder.png" },
-                { name: "Reindeer Rifle", img: "placeholder.png" },
-                { name: "Gingerbread Gun", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2017 Christmas Box": [ 
-                { name: "Frostbite", img: "placeholder.png" },
-                { name: "Ice Breaker", img: "placeholder.png" },
-                { name: "Santa's Sleigh", img: "placeholder.png" },
-                { name: "North Pole Star", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2018 Christmas Box": [ 
-                { name: "Nutcracker", img: "placeholder.png" },
-                { name: "Mistletoe", img: "placeholder.png" },
-                { name: "Winter Magic", img: "placeholder.png" },
-                { name: "Chimney Sweeper", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2019 Christmas Box": [ 
-                { name: "Glacier Blade", img: "placeholder.png" },
-                { name: "Polar Bear Claw", img: "placeholder.png" },
-                { name: "Cozy Fire", img: "placeholder.png" },
-                { name: "Jingle Bell", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2020 Christmas Box": [ 
-                { name: "Peppermint", img: "placeholder.png" },
-                { name: "Tree Ornament", img: "placeholder.png" },
-                { name: "Frozen Lake", img: "placeholder.png" },
-                { name: "Avalanche", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2021 Christmas Box": [ 
-                { name: "Eggnog Blaster", img: "placeholder.png" },
-                { name: "Festive Light", img: "placeholder.png" },
-                { name: "Yule Log", img: "placeholder.png" },
-                { name: "Pine Needles", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2022 Christmas Box": [ 
-                { name: "Aurora Borealis", img: "placeholder.png" },
-                { name: "Sled Runner", img: "placeholder.png" },
-                { name: "Wool Sweater", img: "placeholder.png" },
-                { name: "Chestnut Roaster", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2023 Christmas Box": [ 
-                { name: "Krampus Horn", img: "placeholder.png" },
-                { name: "Blizzard", img: "placeholder.png" },
-                { name: "Ice Sculpture", img: "placeholder.png" },
-                { name: "Snowman Carrot", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2024 Christmas Box": [ 
-                { name: "Crystal Snowflake", img: "placeholder.png" },
-                { name: "Arctic Fox", img: "placeholder.png" },
-                { name: "Midnight Mass", img: "placeholder.png" },
-                { name: "Gift Bag", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ]
-        },
-        Summer: {
-            "2024 Summer Box": [ 
-                { name: "Water Gun", img: "placeholder.png" },
-                { name: "Beach Towel", img: "placeholder.png" },
-                { name: "Sandcastle", img: "placeholder.png" },
-                { name: "Surfboard Slasher", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2025 Summer Box": [ 
-                { name: "Sunburn", img: "placeholder.png" },
-                { name: "Palm Tree", img: "placeholder.png" },
-                { name: "Coconut Crusher", img: "placeholder.png" },
-                { name: "Ocean Wave", img: "placeholder.png" },
-                { name: "Goldy Placeholder", img: "placeholder.png" }
-            ]
-        }
-    },
-    battlepasses: {
-        Halloween: {
-            "2020 Halloween Pass": [ 
-                { name: "Tier 1: Spooky Ghost", img: "placeholder.png" },
-                { name: "Tier 10: Witch Hat", img: "placeholder.png" },
-                { name: "Tier 25: Candy Corn", img: "placeholder.png" },
-                { name: "Tier 50: Skeleton King", img: "placeholder.png" },
-                { name: "Tier 100: Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2021 Halloween Pass": [ 
-                { name: "Tier 1: Bat Swarm", img: "placeholder.png" },
-                { name: "Tier 20: Full Moon", img: "placeholder.png" },
-                { name: "Tier 40: Werewolf", img: "placeholder.png" },
-                { name: "Tier 60: Dracula", img: "placeholder.png" },
-                { name: "Tier 100: Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2022 Halloween Pass": [ 
-                { name: "Tier 1: Spider Web", img: "placeholder.png" },
-                { name: "Tier 20: Venom", img: "placeholder.png" },
-                { name: "Tier 50: Tarantula", img: "placeholder.png" },
-                { name: "Tier 75: Black Widow", img: "placeholder.png" },
-                { name: "Tier 100: Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2023 Halloween Pass": [ 
-                { name: "Tier 1: Zombie Hand", img: "placeholder.png" },
-                { name: "Tier 25: Infected", img: "placeholder.png" },
-                { name: "Tier 50: Quarantine", img: "placeholder.png" },
-                { name: "Tier 75: Biohazard", img: "placeholder.png" },
-                { name: "Tier 100: Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2024 Halloween Pass": [ 
-                { name: "Tier 1: Evil Eye", img: "placeholder.png" },
-                { name: "Tier 25: Curse Mark", img: "placeholder.png" },
-                { name: "Tier 50: Dark Ritual", img: "placeholder.png" },
-                { name: "Tier 75: Summoner", img: "placeholder.png" },
-                { name: "Tier 100: Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2025 Halloween Pass": [ 
-                { name: "Tier 1: Hellfire", img: "placeholder.png" },
-                { name: "Tier 25: Brimstone", img: "placeholder.png" },
-                { name: "Tier 50: Demon Wings", img: "placeholder.png" },
-                { name: "Tier 75: Lord of Terror", img: "placeholder.png" },
-                { name: "Tier 100: Goldy Placeholder", img: "placeholder.png" }
-            ]
-        },
-        Christmas: {
-            "2020 Christmas Pass": [ 
-                { name: "Tier 1: Snowball", img: "placeholder.png" },
-                { name: "Tier 25: Ice Skates", img: "placeholder.png" },
-                { name: "Tier 50: Ski Poles", img: "placeholder.png" },
-                { name: "Tier 75: Snowboard", img: "placeholder.png" },
-                { name: "Tier 100: Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2021 Christmas Pass": [ 
-                { name: "Tier 1: Coal", img: "placeholder.png" },
-                { name: "Tier 25: Naughty List", img: "placeholder.png" },
-                { name: "Tier 50: Krampus Bell", img: "placeholder.png" },
-                { name: "Tier 75: Bad Elf", img: "placeholder.png" },
-                { name: "Tier 100: Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2022 Christmas Pass": [ 
-                { name: "Tier 1: Reindeer Bell", img: "placeholder.png" },
-                { name: "Tier 25: Rudolph Nose", img: "placeholder.png" },
-                { name: "Tier 50: Sleigh Bell", img: "placeholder.png" },
-                { name: "Tier 75: Dasher", img: "placeholder.png" },
-                { name: "Tier 100: Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2023 Christmas Pass": [ 
-                { name: "Tier 1: Gift Box", img: "placeholder.png" },
-                { name: "Tier 25: Wrapping Paper", img: "placeholder.png" },
-                { name: "Tier 50: Ribbon", img: "placeholder.png" },
-                { name: "Tier 75: Bow", img: "placeholder.png" },
-                { name: "Tier 100: Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2024 Christmas Pass": [ 
-                { name: "Tier 1: Ice Cube", img: "placeholder.png" },
-                { name: "Tier 25: Icicle", img: "placeholder.png" },
-                { name: "Tier 50: Frost Shield", img: "placeholder.png" },
-                { name: "Tier 75: Absolute Zero", img: "placeholder.png" },
-                { name: "Tier 100: Goldy Placeholder", img: "placeholder.png" }
-            ]
-        },
-        Summer: {
-            "2024 Summer Pass": [ 
-                { name: "Tier 1: Sunscreen", img: "placeholder.png" },
-                { name: "Tier 25: Sunglasses", img: "placeholder.png" },
-                { name: "Tier 50: Flip Flops", img: "placeholder.png" },
-                { name: "Tier 75: Beach Umbrella", img: "placeholder.png" },
-                { name: "Tier 100: Goldy Placeholder", img: "placeholder.png" }
-            ],
-            "2025 Summer Pass": [ 
-                { name: "Tier 1: Seashell", img: "placeholder.png" },
-                { name: "Tier 25: Starfish", img: "placeholder.png" },
-                { name: "Tier 50: Coral Reef", img: "placeholder.png" },
-                { name: "Tier 75: Shark Fin", img: "placeholder.png" },
-                { name: "Tier 100: Goldy Placeholder", img: "placeholder.png" }
-            ]
-        }
-    }
-};
+        // Uses the exact same localStorage key as boxes.html so the inventory is unified
+        let inventory = JSON.parse(localStorage.getItem('mm2VisualInventory')) || {};
+        let currentActiveButton = null;
 
-let currentViewType = 'boxes';
-let activeItemElement = null;
+        const sidebar = document.getElementById('sidebar');
+        const contentArea = document.getElementById('content-area');
+        const statsDisplay = document.getElementById('global-stats');
 
-function switchType(type) {
-    currentViewType = type;
-    
-    // Atualiza classes das tabs
-    const tabs = document.querySelectorAll('.tab-btn');
-    tabs[0].classList.toggle('active', type === 'boxes');
-    tabs[1].classList.toggle('active', type === 'battlepasses');
+        const categoriesForThisPage = ["Halloween Boxes", "Christmas Boxes", "Summer Boxes", "Battlepasses"]; 
 
-    // Limpa o conteúdo principal
-    document.getElementById('content-title').textContent = "Seleciona um Evento";
-    document.getElementById('items-grid').innerHTML = '<div class="empty-state">Escolhe uma opção no menu lateral.</div>';
-    
-    renderSidebar();
-}
-
-function renderSidebar() {
-    const sidebar = document.getElementById('sidebar-content');
-    sidebar.innerHTML = '';
-
-    const currentData = database[currentViewType];
-
-    // Ordem desejada das categorias
-    const categories = [
-        { key: 'Halloween', icon: '🎃', cssClass: 'header-halloween' },
-        { key: 'Christmas', icon: '🎄', cssClass: 'header-christmas' },
-        { key: 'Summer', icon: '☀️', cssClass: 'header-summer' }
-    ];
-
-    categories.forEach(cat => {
-        if (!currentData[cat.key]) return;
-
-        // Container da Categoria
-        const groupDiv = document.createElement('div');
-        groupDiv.className = 'category-group';
-
-        // Cabeçalho da Categoria
-        const header = document.createElement('div');
-        header.className = `category-header ${cat.cssClass}`;
-        header.innerHTML = `<span>${cat.icon}</span> ${cat.key}`;
-        groupDiv.appendChild(header);
-
-        // Lista de itens (Caixas ou Passes)
-        const ul = document.createElement('ul');
-        ul.className = 'item-list';
-
-        const itemsObj = currentData[cat.key];
-        for (const itemName in itemsObj) {
-            const li = document.createElement('li');
-            li.className = 'list-item';
-            li.textContent = itemName;
+        function updateGlobalStats() {
+            let totalItems = 0;
+            let ownedItems = 0;
             
-            li.onclick = (e) => {
-                // Atualiza seleção visual no menu
-                if (activeItemElement) {
-                    activeItemElement.classList.remove('active');
+            categoriesForThisPage.forEach(cat => {
+                if (mm2Database[cat]) {
+                    Object.values(mm2Database[cat]).forEach(box => {
+                        totalItems += box.length;
+                        box.forEach(gun => {
+                            if (inventory[gun.name]) ownedItems++;
+                        });
+                    });
                 }
-                li.classList.add('active');
-                activeItemElement = li;
+            });
 
-                renderItems(itemName, itemsObj[itemName]);
-            };
-            
-            ul.appendChild(li);
+            const percent = totalItems === 0 ? 0 : Math.round((ownedItems / totalItems) * 100);
+            statsDisplay.innerHTML = `Event Completion: <strong style="color: #fff;">${ownedItems}/${totalItems}</strong> <span style="color: var(--accent-red);">(${percent}%)</span>`;
         }
 
-        groupDiv.appendChild(ul);
-        sidebar.appendChild(groupDiv);
-    });
-}
+        function renderSidebar() {
+            categoriesForThisPage.forEach(categoryName => {
+                if (!mm2Database[categoryName]) return;
 
-function renderItems(title, itemsArray) {
-    const titleEl = document.getElementById('content-title');
-    const grid = document.getElementById('items-grid');
-    
-    titleEl.textContent = title;
-    grid.innerHTML = '';
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category-container';
 
-    if (!itemsArray || itemsArray.length === 0) {
-        grid.innerHTML = '<div class="empty-state">Esta caixa está vazia. Adiciona itens no código.</div>';
-        return;
-    }
+                const categoryHeader = document.createElement('div');
+                categoryHeader.className = 'category-header';
+                categoryHeader.textContent = categoryName;
+                categoryDiv.appendChild(categoryHeader);
 
-    itemsArray.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'item-card';
+                const boxes = mm2Database[categoryName];
+                Object.keys(boxes).forEach(boxName => {
+                    const btn = document.createElement('button');
+                    btn.className = 'box-btn';
+                    btn.textContent = boxName;
+                    
+                    btn.onclick = () => {
+                        if (currentActiveButton) {
+                            currentActiveButton.classList.remove('active');
+                        }
+                        btn.classList.add('active');
+                        currentActiveButton = btn;
 
-        // Imagem principal ou um placeholder garantido caso falhe a carregar
-        const imgSrc = item.img && item.img !== "placeholder.png" ? item.img : 'https://via.placeholder.com/150/151a22/8b929a?text=Sem+Imagem';
+                        renderGuns(boxName, boxes[boxName]);
+                    };
+                    
+                    categoryDiv.appendChild(btn);
+                });
 
-        card.innerHTML = `
-            <img src="${imgSrc}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/150/151a22/8b929a?text=Sem+Imagem'">
-            <div class="item-name">${item.name}</div>
-        `;
-        grid.appendChild(card);
-    });
-}
+                sidebar.appendChild(categoryDiv);
+            });
+        }
 
-// Inicia com "boxes" quando a página carrega
-renderSidebar();
+        function renderGuns(boxName, gunsArray) {
+            contentArea.innerHTML = `<h2 class="box-title">${boxName}</h2>`;
+            
+            const grid = document.createElement('div');
+            grid.className = 'gun-grid';
 
-</script>
+            gunsArray.forEach((item, index) => {
+                const gun = item.name;
+                const imgSrc = item.img;
+                
+                const card = document.createElement('div');
+                card.className = 'gun-card';
+                card.style.animationDelay = `${index * 0.04}s`;
+                
+                const isOwned = inventory[gun] === true;
+                if (isOwned) {
+                    card.classList.add('owned');
+                }
+
+                card.innerHTML = `
+                    <div class="gun-image-container">
+                        <img src="${imgSrc}" alt="${gun}" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'50\\' height=\\'50\\'><rect width=\\'50\\' height=\\'50\\' fill=\\'%232a2b33\\'/></svg>'">
+                    </div>
+                    <div class="gun-info">
+                        <span class="gun-name">${gun}</span>
+                        <span class="gun-status">${isOwned ? 'Owned' : 'Not Owned'}</span>
+                    </div>
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="${gun}" ${isOwned ? 'checked' : ''}>
+                        <span class="custom-checkbox"></span>
+                    </div>
+                `;
+
+                card.addEventListener('click', () => {
+                    const checkbox = card.querySelector('input[type="checkbox"]');
+                    const statusText = card.querySelector('.gun-status');
+                    
+                    const newState = !checkbox.checked;
+                    checkbox.checked = newState;
+                    inventory[gun] = newState;
+                    
+                    localStorage.setItem('mm2VisualInventory', JSON.stringify(inventory));
+                    
+                    if (newState) {
+                        card.classList.add('owned');
+                        statusText.textContent = 'Owned';
+                    } else {
+                        card.classList.remove('owned');
+                        statusText.textContent = 'Not Owned';
+                    }
+                    
+                    updateGlobalStats();
+                });
+
+                grid.appendChild(card);
+            });
+
+            contentArea.appendChild(grid);
+        }
+
+        renderSidebar();
+        updateGlobalStats();
+    </script>
 </body>
 </html>
