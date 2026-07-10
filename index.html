@@ -33,7 +33,6 @@
             position: relative;
         }
 
-        /* Animated Background Canvas */
         #bg-canvas {
             position: fixed;
             top: 0;
@@ -44,7 +43,6 @@
             pointer-events: none;
         }
 
-        /* Subtle Scanline Overlay for Cyberpunk/Gaming Look */
         body::before {
             content: " ";
             display: block;
@@ -68,7 +66,6 @@
             z-index: 2;
         }
 
-        /* Logo Animation Intro */
         .logo {
             font-size: 64px;
             font-weight: 900;
@@ -97,15 +94,13 @@
             animation: dropFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
         }
 
-        /* Staggered grid container entrance */
         .menu-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 35px;
-            perspective: 1000px; /* Crucial for 3D card rotations */
+            perspective: 1000px; 
         }
 
-        /* Premium 3D Glassmorphism Cards */
         .menu-card {
             background: var(--bg-panel);
             backdrop-filter: blur(12px);
@@ -123,17 +118,15 @@
             overflow: hidden;
             opacity: 0;
             transform: translateY(40px);
-            transform-style: preserve-3d; /* Allows nested elements to snap out in 3D */
+            transform-style: preserve-3d; 
             transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
         }
 
-        /* Card Entrance Animations via Delays */
         .menu-card:nth-child(1) { animation: raiseFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards; }
         .menu-card:nth-child(2) { animation: raiseFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards; }
         .menu-card:nth-child(3) { animation: raiseFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards; }
         .menu-card:nth-child(4) { animation: raiseFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.6s forwards; }
 
-        /* Dynamic Border Highlight Gradient Trackers on Hover */
         .menu-card::before {
             content: '';
             position: absolute;
@@ -157,7 +150,6 @@
             opacity: 1;
         }
 
-        /* 3D Elements Inside Cards */
         .icon-container {
             width: 90px;
             height: 90px;
@@ -169,7 +161,7 @@
             align-items: center;
             justify-content: center;
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            transform: translateZ(30px); /* Pushes icon outward in 3D layer space */
+            transform: translateZ(30px);
         }
 
         .menu-card:hover .icon-container {
@@ -230,7 +222,6 @@
             animation: dropFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.8s forwards;
         }
 
-        /* Animations Keyframes */
         @keyframes dropFade {
             to {
                 opacity: 1;
@@ -256,17 +247,11 @@
     </style>
 </head>
 <body>
-
-    <!-- Deep Ambient Matrix Particles Background -->
     <canvas id="bg-canvas"></canvas>
-
     <div class="menu-container">
         <div class="logo">MM2 <span>Tracker</span></div>
         <div class="subtitle">Select a destination to manage and track your inventory</div>
-
         <div class="menu-grid">
-            
-            <!-- Boxes Card -->
             <a href="boxes.html" class="menu-card">
                 <div class="icon-container">
                     <img src="box_icon.png" alt="Boxes">
@@ -301,14 +286,11 @@
                 <h2>Shop & Passes</h2>
                 <p>Track buyable Godlies, item packs, and gamepass exclusives.</p>
             </a>
-
         </div>
-
         <footer>Automatically saves your collection locally to your browser</footer>
     </div>
 
     <script>
-        // --- 1. INTENSE INTERACTIVE CANVAS BACKGROUND ---
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
 
@@ -362,8 +344,6 @@
 
         function animateParticles() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Subtle ambient dark grid center fill
             const gradient = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 10, canvas.width/2, canvas.height/2, canvas.width);
             gradient.addColorStop(0, 'rgba(22, 23, 29, 0.4)');
             gradient.addColorStop(1, 'rgba(5, 5, 8, 0)');
@@ -375,7 +355,6 @@
                 p.draw();
             });
 
-            // Draw line webs connecting nearby particles
             for (let a = 0; a < particles.length; a++) {
                 for (let b = a + 1; b < particles.length; b++) {
                     const dist = Math.hypot(particles[a].x - particles[b].x, particles[a].y - particles[b].y);
@@ -394,29 +373,21 @@
         }
         animateParticles();
 
-
-        // --- 2. 3D MOUSE TILT AND RADIAL HIGHLIGHT FX ---
         const cards = document.querySelectorAll('.menu-card');
 
         cards.forEach(card => {
             card.addEventListener('mousemove', (e) => {
                 const rect = card.getBoundingClientRect();
-                
-                // Track internal mouse coordinates for custom glowing radial background alignment
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
                 card.style.setProperty('--mx', `${x}px`);
                 card.style.setProperty('--my', `${y}px`);
-
-                // Calculate tilt vectors (-1 to 1 based on center axis alignment)
                 const cardWidth = rect.width;
                 const cardHeight = rect.height;
                 const centerX = rect.left + cardWidth / 2;
                 const centerY = rect.top + cardHeight / 2;
                 const mouseX = e.clientX - centerX;
                 const mouseY = e.clientY - centerY;
-                
-                // Maximum degrees of shift rotation
                 const maxRotation = 12; 
                 const rotateX = ((mouseY / (cardHeight / 2)) * -maxRotation).toFixed(2);
                 const rotateY = ((mouseX / (cardWidth / 2)) * maxRotation).toFixed(2);
@@ -425,7 +396,6 @@
             });
 
             card.addEventListener('mouseleave', () => {
-                // Instantly snap card back into structural grid plane upon mouse boundary reset
                 card.style.transform = 'rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
             });
         });
