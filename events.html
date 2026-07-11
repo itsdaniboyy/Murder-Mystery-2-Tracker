@@ -112,11 +112,50 @@
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border-right: 1px solid var(--border-color);
-            overflow-y: auto;
             display: flex;
             flex-direction: column;
             z-index: 5;
             box-shadow: 5px 0 25px rgba(0,0,0,0.5);
+        }
+
+        /* TABS UI */
+        .sidebar-tabs {
+            display: flex;
+            background: rgba(10, 11, 14, 0.9);
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 18px 0;
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+            outline: none;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .tab-btn.active {
+            color: var(--accent-red);
+            border-bottom-color: var(--accent-red);
+            background: linear-gradient(0deg, rgba(255, 59, 59, 0.08) 0%, transparent 100%);
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
         }
 
         .category-container {
@@ -499,19 +538,27 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                 Main Menu
             </a>
-            <h1>Event <span>Boxes</span></h1>
+            <h1>Event <span>Tracker</span></h1>
         </div>
         <div class="header-stats" id="global-stats">Loading stats...</div>
     </header>
 
     <div class="app-container">
-        <div class="sidebar" id="sidebar"></div>
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-tabs">
+                <button class="tab-btn active" id="tab-boxes">Boxes</button>
+                <button class="tab-btn" id="tab-passes">Battlepasses</button>
+            </div>
+            <div id="sidebar-content" class="sidebar-content">
+                <!-- Javascript will inject categories here based on the selected tab -->
+            </div>
+        </div>
 
         <div class="main-content">
             <div id="content-area">
                 <div class="empty-state">
                     <h2>Select an Event</h2>
-                    <p>Choose a Box or Battlepass from the sidebar to start tracking your event inventory.</p>
+                    <p>Choose an item from the sidebar to start tracking your inventory.</p>
                 </div>
             </div>
         </div>
@@ -774,21 +821,26 @@
             }
         };
 
-        // Uses the exact same localStorage key as boxes.html so the inventory is unified
         let inventory = JSON.parse(localStorage.getItem('mm2VisualInventory')) || {};
         let currentActiveButton = null;
 
-        const sidebar = document.getElementById('sidebar');
+        const sidebarContent = document.getElementById('sidebar-content');
         const contentArea = document.getElementById('content-area');
         const statsDisplay = document.getElementById('global-stats');
+        
+        const tabBoxesBtn = document.getElementById('tab-boxes');
+        const tabPassesBtn = document.getElementById('tab-passes');
 
-        const categoriesForThisPage = ["Halloween Boxes", "Christmas Boxes", "Summer Boxes", "Battlepasses"]; 
+        // Split categories for the tabs
+        const allCategories = ["Halloween Boxes", "Christmas Boxes", "Summer Boxes", "Battlepasses"];
+        const boxesCategories = ["Halloween Boxes", "Christmas Boxes", "Summer Boxes"];
+        const passesCategories = ["Battlepasses"];
 
         function updateGlobalStats() {
             let totalItems = 0;
             let ownedItems = 0;
             
-            categoriesForThisPage.forEach(cat => {
+            allCategories.forEach(cat => {
                 if (mm2Database[cat]) {
                     Object.values(mm2Database[cat]).forEach(box => {
                         totalItems += box.length;
@@ -803,8 +855,22 @@
             statsDisplay.innerHTML = `Event Completion: <strong style="color: #fff;">${ownedItems}/${totalItems}</strong> <span style="color: var(--accent-red);">(${percent}%)</span>`;
         }
 
-        function renderSidebar() {
-            categoriesForThisPage.forEach(categoryName => {
+        function renderSidebar(type) {
+            // Clear current sidebar items
+            sidebarContent.innerHTML = '';
+            currentActiveButton = null;
+
+            // Reset the main area to empty state when switching tabs
+            contentArea.innerHTML = `
+                <div class="empty-state">
+                    <h2>Select an Event</h2>
+                    <p>Choose an item from the sidebar to start tracking your inventory.</p>
+                </div>
+            `;
+
+            const categoriesToRender = type === 'boxes' ? boxesCategories : passesCategories;
+
+            categoriesToRender.forEach(categoryName => {
                 if (!mm2Database[categoryName]) return;
 
                 const categoryDiv = document.createElement('div');
@@ -828,21 +894,32 @@
                         btn.classList.add('active');
                         currentActiveButton = btn;
 
-                        // Now we pass the categoryName so we know how to render it!
                         renderItems(categoryName, boxName, boxes[boxName]);
                     };
                     
                     categoryDiv.appendChild(btn);
                 });
 
-                sidebar.appendChild(categoryDiv);
+                sidebarContent.appendChild(categoryDiv);
             });
         }
+
+        // Event Listeners for Tabs
+        tabBoxesBtn.addEventListener('click', () => {
+            tabBoxesBtn.classList.add('active');
+            tabPassesBtn.classList.remove('active');
+            renderSidebar('boxes');
+        });
+
+        tabPassesBtn.addEventListener('click', () => {
+            tabPassesBtn.classList.add('active');
+            tabBoxesBtn.classList.remove('active');
+            renderSidebar('passes');
+        });
 
         function renderItems(categoryName, boxName, itemsArray) {
             contentArea.innerHTML = `<h2 class="box-title">${boxName}</h2>`;
             
-            // Check if it is a Battlepass to change the layout
             if (categoryName === "Battlepasses") {
                 const track = document.createElement('div');
                 track.className = 'battlepass-track';
@@ -852,18 +929,15 @@
                     const imgSrc = item.img;
                     const isOwned = inventory[gun] === true;
                     
-                    // Create the Tier Node (Wrapper)
                     const node = document.createElement('div');
                     node.className = `tier-node ${isOwned ? 'owned' : ''}`;
                     node.style.animationDelay = `${index * 0.1}s`;
                     
-                    // Add the Tier Number Badge
                     const badge = document.createElement('div');
                     badge.className = 'tier-badge';
                     badge.textContent = `Tier ${index + 1}`;
                     node.appendChild(badge);
                     
-                    // Create the Card
                     const card = document.createElement('div');
                     card.className = `gun-card ${isOwned ? 'owned' : ''}`;
 
@@ -881,7 +955,6 @@
                         </div>
                     `;
 
-                    // Click event to toggle item
                     card.addEventListener('click', () => {
                         const checkbox = card.querySelector('input[type="checkbox"]');
                         const statusText = card.querySelector('.gun-status');
@@ -894,11 +967,11 @@
                         
                         if (newState) {
                             card.classList.add('owned');
-                            node.classList.add('owned'); // Updates the Tier Node too
+                            node.classList.add('owned');
                             statusText.textContent = 'Owned';
                         } else {
                             card.classList.remove('owned');
-                            node.classList.remove('owned'); // Updates the Tier Node too
+                            node.classList.remove('owned');
                             statusText.textContent = 'Not Owned';
                         }
                         
@@ -912,7 +985,6 @@
                 contentArea.appendChild(track);
 
             } else {
-                // If it's just a normal Box, render the Grid layout
                 const grid = document.createElement('div');
                 grid.className = 'gun-grid';
 
@@ -971,7 +1043,8 @@
             }
         }
 
-        renderSidebar();
+        // Initialize with Boxes Tab active
+        renderSidebar('boxes');
         updateGlobalStats();
     </script>
 </body>
