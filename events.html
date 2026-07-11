@@ -383,6 +383,79 @@
         .gun-card.owned .custom-checkbox::after {
             display: block;
         }
+        
+        /* --- BATTLEPASS HORIZONTAL LAYOUT --- */
+        .battlepass-track {
+            display: flex;
+            gap: 40px;
+            padding: 30px 10px 50px 10px;
+            overflow-x: auto;
+            position: relative;
+            align-items: center;
+            min-height: 250px;
+        }
+
+        /* The horizontal connection line */
+        .battlepass-track::before {
+            content: '';
+            position: absolute;
+            top: calc(50% - 10px);
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: var(--border-color);
+            z-index: 0;
+            border-radius: 10px;
+        }
+
+        .tier-node {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            min-width: 280px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: cardEnter 0.5s forwards ease-out;
+        }
+
+        .tier-badge {
+            background: var(--bg-dark);
+            border: 2px solid var(--border-color);
+            color: var(--text-muted);
+            font-weight: 900;
+            padding: 8px 24px;
+            border-radius: 25px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+        }
+
+        .tier-node.owned .tier-badge {
+            border-color: var(--owned-green);
+            color: var(--owned-green);
+            box-shadow: 0 0 15px var(--owned-glow);
+            background: rgba(0, 40, 20, 0.8);
+        }
+
+        /* Adjusting the card inside the tier node */
+        .tier-node .gun-card {
+            width: 100%;
+            box-sizing: border-box;
+            margin: 0;
+            /* Disable animation since the wrapper handles it */
+            animation: none;
+            opacity: 1;
+            transform: none;
+        }
+        
+        .tier-node .gun-card:hover {
+            transform: translateY(-5px) scale(1.02);
+        }
 
         .empty-state {
             display: flex;
@@ -404,6 +477,7 @@
 
         ::-webkit-scrollbar {
             width: 8px;
+            height: 10px; /* Thicker for horizontal scroll */
         }
         ::-webkit-scrollbar-track {
             background: var(--bg-dark);
@@ -754,7 +828,8 @@
                         btn.classList.add('active');
                         currentActiveButton = btn;
 
-                        renderGuns(boxName, boxes[boxName]);
+                        // Now we pass the categoryName so we know how to render it!
+                        renderItems(categoryName, boxName, boxes[boxName]);
                     };
                     
                     categoryDiv.appendChild(btn);
@@ -764,64 +839,136 @@
             });
         }
 
-        function renderGuns(boxName, gunsArray) {
+        function renderItems(categoryName, boxName, itemsArray) {
             contentArea.innerHTML = `<h2 class="box-title">${boxName}</h2>`;
             
-            const grid = document.createElement('div');
-            grid.className = 'gun-grid';
-
-            gunsArray.forEach((item, index) => {
-                const gun = item.name;
-                const imgSrc = item.img;
+            // Check if it is a Battlepass to change the layout
+            if (categoryName === "Battlepasses") {
+                const track = document.createElement('div');
+                track.className = 'battlepass-track';
                 
-                const card = document.createElement('div');
-                card.className = 'gun-card';
-                card.style.animationDelay = `${index * 0.04}s`;
+                itemsArray.forEach((item, index) => {
+                    const gun = item.name;
+                    const imgSrc = item.img;
+                    const isOwned = inventory[gun] === true;
+                    
+                    // Create the Tier Node (Wrapper)
+                    const node = document.createElement('div');
+                    node.className = `tier-node ${isOwned ? 'owned' : ''}`;
+                    node.style.animationDelay = `${index * 0.1}s`;
+                    
+                    // Add the Tier Number Badge
+                    const badge = document.createElement('div');
+                    badge.className = 'tier-badge';
+                    badge.textContent = `Tier ${index + 1}`;
+                    node.appendChild(badge);
+                    
+                    // Create the Card
+                    const card = document.createElement('div');
+                    card.className = `gun-card ${isOwned ? 'owned' : ''}`;
+
+                    card.innerHTML = `
+                        <div class="gun-image-container">
+                            <img src="${imgSrc}" alt="${gun}" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'50\\' height=\\'50\\'><rect width=\\'50\\' height=\\'50\\' fill=\\'%232a2b33\\'/></svg>'">
+                        </div>
+                        <div class="gun-info">
+                            <span class="gun-name">${gun}</span>
+                            <span class="gun-status">${isOwned ? 'Owned' : 'Not Owned'}</span>
+                        </div>
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="${gun}" ${isOwned ? 'checked' : ''}>
+                            <span class="custom-checkbox"></span>
+                        </div>
+                    `;
+
+                    // Click event to toggle item
+                    card.addEventListener('click', () => {
+                        const checkbox = card.querySelector('input[type="checkbox"]');
+                        const statusText = card.querySelector('.gun-status');
+                        
+                        const newState = !checkbox.checked;
+                        checkbox.checked = newState;
+                        inventory[gun] = newState;
+                        
+                        localStorage.setItem('mm2VisualInventory', JSON.stringify(inventory));
+                        
+                        if (newState) {
+                            card.classList.add('owned');
+                            node.classList.add('owned'); // Updates the Tier Node too
+                            statusText.textContent = 'Owned';
+                        } else {
+                            card.classList.remove('owned');
+                            node.classList.remove('owned'); // Updates the Tier Node too
+                            statusText.textContent = 'Not Owned';
+                        }
+                        
+                        updateGlobalStats();
+                    });
+
+                    node.appendChild(card);
+                    track.appendChild(node);
+                });
                 
-                const isOwned = inventory[gun] === true;
-                if (isOwned) {
-                    card.classList.add('owned');
-                }
+                contentArea.appendChild(track);
 
-                card.innerHTML = `
-                    <div class="gun-image-container">
-                        <img src="${imgSrc}" alt="${gun}" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'50\\' height=\\'50\\'><rect width=\\'50\\' height=\\'50\\' fill=\\'%232a2b33\\'/></svg>'">
-                    </div>
-                    <div class="gun-info">
-                        <span class="gun-name">${gun}</span>
-                        <span class="gun-status">${isOwned ? 'Owned' : 'Not Owned'}</span>
-                    </div>
-                    <div class="checkbox-wrapper">
-                        <input type="checkbox" id="${gun}" ${isOwned ? 'checked' : ''}>
-                        <span class="custom-checkbox"></span>
-                    </div>
-                `;
+            } else {
+                // If it's just a normal Box, render the Grid layout
+                const grid = document.createElement('div');
+                grid.className = 'gun-grid';
 
-                card.addEventListener('click', () => {
-                    const checkbox = card.querySelector('input[type="checkbox"]');
-                    const statusText = card.querySelector('.gun-status');
+                itemsArray.forEach((item, index) => {
+                    const gun = item.name;
+                    const imgSrc = item.img;
                     
-                    const newState = !checkbox.checked;
-                    checkbox.checked = newState;
-                    inventory[gun] = newState;
+                    const card = document.createElement('div');
+                    card.className = 'gun-card';
+                    card.style.animationDelay = `${index * 0.04}s`;
                     
-                    localStorage.setItem('mm2VisualInventory', JSON.stringify(inventory));
-                    
-                    if (newState) {
+                    const isOwned = inventory[gun] === true;
+                    if (isOwned) {
                         card.classList.add('owned');
-                        statusText.textContent = 'Owned';
-                    } else {
-                        card.classList.remove('owned');
-                        statusText.textContent = 'Not Owned';
                     }
-                    
-                    updateGlobalStats();
+
+                    card.innerHTML = `
+                        <div class="gun-image-container">
+                            <img src="${imgSrc}" alt="${gun}" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'50\\' height=\\'50\\'><rect width=\\'50\\' height=\\'50\\' fill=\\'%232a2b33\\'/></svg>'">
+                        </div>
+                        <div class="gun-info">
+                            <span class="gun-name">${gun}</span>
+                            <span class="gun-status">${isOwned ? 'Owned' : 'Not Owned'}</span>
+                        </div>
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="${gun}" ${isOwned ? 'checked' : ''}>
+                            <span class="custom-checkbox"></span>
+                        </div>
+                    `;
+
+                    card.addEventListener('click', () => {
+                        const checkbox = card.querySelector('input[type="checkbox"]');
+                        const statusText = card.querySelector('.gun-status');
+                        
+                        const newState = !checkbox.checked;
+                        checkbox.checked = newState;
+                        inventory[gun] = newState;
+                        
+                        localStorage.setItem('mm2VisualInventory', JSON.stringify(inventory));
+                        
+                        if (newState) {
+                            card.classList.add('owned');
+                            statusText.textContent = 'Owned';
+                        } else {
+                            card.classList.remove('owned');
+                            statusText.textContent = 'Not Owned';
+                        }
+                        
+                        updateGlobalStats();
+                    });
+
+                    grid.appendChild(card);
                 });
 
-                grid.appendChild(card);
-            });
-
-            contentArea.appendChild(grid);
+                contentArea.appendChild(grid);
+            }
         }
 
         renderSidebar();
