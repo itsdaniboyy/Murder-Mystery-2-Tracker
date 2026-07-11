@@ -566,6 +566,7 @@
 
     <script>
         const mm2Database = {
+            // --- BOXES ---
             "Halloween Boxes": {
                 "2016 Halloween Box": [
                     { name: "Pumpkin Slasher", img: "placeholder.png" },
@@ -710,6 +711,22 @@
                     { name: "Godly Placeholder", img: "placeholder.png" }
                 ]
             },
+            "Easter Boxes": {
+                "2024 Easter Box": [
+                    { name: "Egg Basket", img: "placeholder.png" },
+                    { name: "Bunny Ear", img: "placeholder.png" },
+                    { name: "Carrot Slicer", img: "placeholder.png" },
+                    { name: "Pastel Edge", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ],
+                "2025 Easter Box": [
+                    { name: "Chocolate Bunny", img: "placeholder.png" },
+                    { name: "Spring Bloom", img: "placeholder.png" },
+                    { name: "Hatching Chick", img: "placeholder.png" },
+                    { name: "Painted Shell", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ]
+            },
             "Summer Boxes": {
                 "2024 Summer Box": [
                     { name: "Water Gun", img: "placeholder.png" },
@@ -726,7 +743,9 @@
                     { name: "Godly Placeholder", img: "placeholder.png" }
                 ]
             },
-            "Battlepasses": {
+            
+            // --- BATTLEPASSES ---
+            "Halloween Passes": {
                 "2020 Halloween Pass": [
                     { name: "Spooky Ghost", img: "placeholder.png" },
                     { name: "Witch Hat", img: "placeholder.png" },
@@ -768,7 +787,9 @@
                     { name: "Demon Wings", img: "placeholder.png" },
                     { name: "Lord of Terror", img: "placeholder.png" },
                     { name: "Godly Placeholder", img: "placeholder.png" }
-                ],
+                ]
+            },
+            "Christmas Passes": {
                 "2020 Christmas Pass": [
                     { name: "Snowball", img: "placeholder.png" },
                     { name: "Ice Skates", img: "placeholder.png" },
@@ -803,7 +824,25 @@
                     { name: "Frost Shield", img: "placeholder.png" },
                     { name: "Absolute Zero", img: "placeholder.png" },
                     { name: "Godly Placeholder", img: "placeholder.png" }
+                ]
+            },
+            "Easter Passes": {
+                "2024 Easter Pass": [
+                    { name: "Golden Egg", img: "placeholder.png" },
+                    { name: "Jellybean", img: "placeholder.png" },
+                    { name: "Marshmallow", img: "placeholder.png" },
+                    { name: "Daffodil", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
                 ],
+                "2025 Easter Pass": [
+                    { name: "Rabbit Foot", img: "placeholder.png" },
+                    { name: "Springtime", img: "placeholder.png" },
+                    { name: "Lily Pad", img: "placeholder.png" },
+                    { name: "Flower Crown", img: "placeholder.png" },
+                    { name: "Godly Placeholder", img: "placeholder.png" }
+                ]
+            },
+            "Summer Passes": {
                 "2024 Summer Pass": [
                     { name: "Sunscreen", img: "placeholder.png" },
                     { name: "Sunglasses", img: "placeholder.png" },
@@ -832,9 +871,9 @@
         const tabPassesBtn = document.getElementById('tab-passes');
 
         // Split categories for the tabs
-        const allCategories = ["Halloween Boxes", "Christmas Boxes", "Summer Boxes", "Battlepasses"];
-        const boxesCategories = ["Halloween Boxes", "Christmas Boxes", "Summer Boxes"];
-        const passesCategories = ["Battlepasses"];
+        const boxesCategories = ["Halloween Boxes", "Christmas Boxes", "Easter Boxes", "Summer Boxes"];
+        const passesCategories = ["Halloween Passes", "Christmas Passes", "Easter Passes", "Summer Passes"];
+        const allCategories = [...boxesCategories, ...passesCategories];
 
         function updateGlobalStats() {
             let totalItems = 0;
@@ -920,7 +959,8 @@
         function renderItems(categoryName, boxName, itemsArray) {
             contentArea.innerHTML = `<h2 class="box-title">${boxName}</h2>`;
             
-            if (categoryName === "Battlepasses") {
+            // Check if it's a pass to render horizontal track, otherwise render grid
+            if (passesCategories.includes(categoryName)) {
                 const track = document.createElement('div');
                 track.className = 'battlepass-track';
                 
